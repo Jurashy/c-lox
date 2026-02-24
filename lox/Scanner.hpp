@@ -9,6 +9,7 @@
 class Scanner
 {
 private:
+    auto match(char expected) -> bool;
     auto peek() -> char;
     const std::string m_source{};
     std::vector<Token> tokens{};

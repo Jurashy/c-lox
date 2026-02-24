@@ -6,6 +6,51 @@
 
 #include <vector>
 #include <memory>
+
+auto Parser::forStatement() -> std::shared_ptr<Stmt> {
+    consume(TokenType::LEFT_PAREN, "Expect '(' after a 'for'.");
+
+    std::shared_ptr<Stmt> initializer;
+    if (match({TokenType::SEMICOLON})) {
+        initializer = nullptr;
+    } else if (match({TokenType::VAR})) {
+        initializer = varDeclaration();
+    } else {
+        initializer = expressionStatement();
+    }
+
+    std::shared_ptr<Expr> condition = nullptr;
+    if (!check(TokenType::SEMICOLON)) condition = expression();
+    consume(TokenType::SEMICOLON, "Exect ';' after loop condition.");
+
+    std::shared_ptr<Expr> increment = nullptr;
+    if (!check(TokenType::RIGHT_PAREN)) increment = expression();
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after for clauses");
+
+    std::shared_ptr<Stmt> body = statement();
+
+
+    if (increment != nullptr)
+        body = std::make_shared<Block>(std::vector<std::shared_ptr<Stmt>> { body, std::make_shared<Expression>(increment) });
+
+    if (condition == nullptr) condition = std::make_shared<LLiteral>(true);
+    body = std::make_shared<While>(std::move(condition), body);
+
+    if (initializer != nullptr)
+        body = std::make_shared<Block>(std::vector<std::shared_ptr<Stmt>> {initializer, body});
+    return body;
+}
+
+auto Parser::whileStatement() -> std::shared_ptr<Stmt> {
+    consume(TokenType::LEFT_PAREN, "expect '(' after the 'while'.");
+    std::unique_ptr<Expr> condition = expression();
+    consume(TokenType::RIGHT_PAREN, "expect ')' after the condition.");
+
+    std::shared_ptr<Stmt> body = statement();
+
+    return make_shared<While>(std::move(condition), body);
+}
+
 auto Parser::logic_and() -> std::unique_ptr<Expr> {
     std::unique_ptr<Expr> expr = equality();
 
@@ -19,6 +64,7 @@ auto Parser::logic_and() -> std::unique_ptr<Expr> {
 
     return expr;
 }
+
 auto Parser::logic_or() -> std::unique_ptr<Expr> {
     std::unique_ptr<Expr> expr = logic_and();
 
@@ -66,7 +112,7 @@ auto Parser::assignment() -> std::unique_ptr<Expr> {
 
     if (match({TokenType::EQUAL})) {
         Token equals = previous();
-        std::shared_ptr<Expr> value = assignment();
+        auto value = assignment();
 
         if (auto var = dynamic_cast<Variable*>(expr.get())) {
             Token name = var->name;
@@ -114,8 +160,10 @@ auto Parser::printStatement() -> std::shared_ptr<Stmt> {
 }
 
 auto Parser::statement() -> std::shared_ptr<Stmt> {
+    if (match({TokenType::FOR})) return forStatement();
     if (match({TokenType::IF})) return ifStatement();
     if (match({TokenType::PRINT})) return printStatement();
+    if (match({TokenType::WHILE})) return whileStatement();
     if (match({TokenType::LEFT_BRACE})) return std::make_shared<Block>(block());
 
     return expressionStatement();
@@ -233,14 +281,14 @@ auto Parser::term() -> std::unique_ptr<Expr>
 
 auto Parser::comparison() -> std::unique_ptr<Expr>
 {
-    auto expr = term(); // <- we don't have this yet
-
+    auto expr = term();
     while (match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL}))
     {
         Token oper = previous();
         auto right = term();
         expr = std::make_unique<Binary>(std::move(expr), oper, std::move(right));
     }
+    std::cout << "entered comparison\n";
 
     return expr;
 }

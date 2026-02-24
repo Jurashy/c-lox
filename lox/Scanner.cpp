@@ -12,6 +12,14 @@
 #include <vector>
 #include <cctype>
 
+
+auto Scanner::match(char expected) -> bool {
+    if (isAtEnd()) return false;
+    if (m_source[current] != expected) return false;
+
+    current++;
+    return true;
+}
 auto Scanner::peek() -> char
 {
     if (isAtEnd()) return '\0';
@@ -78,12 +86,23 @@ auto Scanner::scanToken() -> void
     case '*':
         addToken(TokenType::STAR);
         break;
+        case '/':
+            addToken(TokenType::SLASH);
+            break;
     case '"': 
         String__();
         break;
-    case '=':
-            addToken(TokenType::EQUAL);
+        case '=':
+            addToken(match('=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL);
             break;
+        case '<':
+            addToken(match('=') ? TokenType::LESS_EQUAL : TokenType::LESS);
+            break;
+        case '>':
+            addToken(match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER);
+            break;
+
+
     // case 'o':
     //     if (peek() == 'r') addToken(TokenType::OR);
     //     break;

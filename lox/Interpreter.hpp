@@ -13,6 +13,7 @@
 #include "../output/Stmt.hpp"
 #include "../output/Expr.hpp"
 
+/// 139 while-loop
 // logical operators 137
 template <typename T>
 struct Interpreter : public ExprVisitor, StmtVisitor
@@ -20,7 +21,11 @@ struct Interpreter : public ExprVisitor, StmtVisitor
     Interpreter() {
         environment = std::make_shared<Environment<T>>(nullptr);
     }
+    auto visitWhileStmt(While &stmt) -> Value override {
+        while (isTruthy(evaluate(stmt.condition))) execute(*stmt.body);
 
+        return {};
+    }
     auto visitLogicalExpr(Logical &expr) -> Value override {
         auto left = evaluate(expr.left);
 

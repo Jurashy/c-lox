@@ -22,7 +22,8 @@ std::vector<Str> Statements
     "Expression    : std::shared_ptr<Expr> expression",
     "IF            : std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch",
     "Print         : std::shared_ptr<Expr> expression",
-    "Var           : Token name, std::shared_ptr<Expr> initializer"
+    "Var           : Token name, std::shared_ptr<Expr> initializer",
+    "While         : std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body"
 };
 
 auto main(int argc, char** argv) -> int

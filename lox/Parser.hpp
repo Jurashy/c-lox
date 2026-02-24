@@ -15,6 +15,9 @@ struct Parser
     auto parse() -> std::vector<std::shared_ptr<Stmt>>;
 
 private:
+    auto logic_and() -> std::unique_ptr<Expr>;
+    auto logic_or() -> std::unique_ptr<Expr>;
+    auto ifStatement() -> std::shared_ptr<Stmt>;
     auto block() -> std::vector<std::shared_ptr<Stmt>>;
     auto assignment() -> std::unique_ptr<Expr>;
     auto varDeclaration() -> std::shared_ptr<Stmt>;

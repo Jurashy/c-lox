@@ -74,17 +74,28 @@ static auto runFile(std::string path) -> void
 
 static auto runPrompt() -> void
 {
-    std::string line;
+    std::string buffer;
+    int openBraces = 0;
 
     for(;;)
     {
-        std::cout << "> ";
+        std::cout << (openBraces > 0 ? "| " : ">");
+        std::string line;
         if (!std::getline(std::cin, line))
         {
             break;
         }
-        run(line);
-        some_vars::hadError = false;
+        for (char c : line) {
+            if (c == '{') openBraces++;
+            if (c == '}') openBraces--;
+        }
+        buffer += line + "\n";
+        if (openBraces <= 0) {
+            run(buffer);
+            buffer.clear();
+            openBraces = 0;
+            some_vars::hadError = false;
+        }
     }
 }
 

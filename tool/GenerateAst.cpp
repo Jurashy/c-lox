@@ -9,18 +9,20 @@
 std::vector<Str> as_list
     {
         "Assign     : Token name, std::shared_ptr<Expr> value",
-        "Binary        : std::shared_ptr<Expr> left, Token my_operator, std::shared_ptr<Expr> right",
+        "Binary     : std::shared_ptr<Expr> left, Token my_operator, std::shared_ptr<Expr> right",
         "Grouping   : std::shared_ptr<Expr> expression",
         "LLiteral   : Value value",
-        "Unary      : Token my_operator, std::shared_ptr<Expr> right",
+        "Logical    : std::shared_ptr<Expr> left, Token oper, std::shared_ptr<Expr> right",
+        "Unary        : Token my_operator, std::shared_ptr<Expr> right",
         "Variable   : Token name"
     };
 std::vector<Str> Statements
 {
-    "Block      : std::vector<std::shared_ptr<Stmt>> statements",
+    "Block         : std::vector<std::shared_ptr<Stmt>> statements",
     "Expression    : std::shared_ptr<Expr> expression",
-    "Print      : std::shared_ptr<Expr> expression",
-    "Var        : Token name, std::shared_ptr<Expr> initializer"
+    "IF            : std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch",
+    "Print         : std::shared_ptr<Expr> expression",
+    "Var           : Token name, std::shared_ptr<Expr> initializer"
 };
 
 auto main(int argc, char** argv) -> int

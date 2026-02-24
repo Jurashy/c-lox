@@ -13,12 +13,30 @@
 #include "../output/Stmt.hpp"
 #include "../output/Expr.hpp"
 
-
+// logical operators 137
 template <typename T>
 struct Interpreter : public ExprVisitor, StmtVisitor
 {
     Interpreter() {
         environment = std::make_shared<Environment<T>>(nullptr);
+    }
+
+    auto visitLogicalExpr(Logical &expr) -> Value override {
+        auto left = evaluate(expr.left);
+
+        if (expr.oper.getType() == TokenType::OR) {
+            if (isTruthy(left)) return left;
+        } else {
+            if (!isTruthy(left)) return left;
+        }
+
+        return evaluate(expr.right);
+    }
+    auto visitIFStmt(IF& stmt) -> Value override {
+        if (isTruthy(evaluate(stmt.condition))) execute(*stmt.thenBranch);
+        else if (stmt.elseBranch != nullptr) execute(*stmt.elseBranch);
+
+        return {};
     }
     auto executeBlock(std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment<T>> newEnv) -> void {
         auto previous = environment;
@@ -134,7 +152,8 @@ struct Interpreter : public ExprVisitor, StmtVisitor
                 throw RuntimeError(expr.my_operator, "operators must be numbers or two strings");//103 hooking up the interpreter
             case TokenType::SLASH:
                 checkNumberOperands(expr.my_operator, left, right);
-                return std::get<double>(left) / std::get<double>(right);
+                if (std::holds_alternative<double>(left) && std::holds_alternative<double>(right))
+                    return std::get<double>(left) / std::get<double>(right);
             case TokenType::STAR:
                 return std::get<double>(left) * std::get<double>(right);
             default:

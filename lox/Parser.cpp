@@ -6,7 +6,48 @@
 
 #include <vector>
 #include <memory>
+auto Parser::logic_and() -> std::unique_ptr<Expr> {
+    std::unique_ptr<Expr> expr = equality();
 
+    while (match({TokenType::AND})) {
+        Token oper = previous();
+
+        std::unique_ptr<Expr> right = equality();
+
+        expr = std::make_unique<Logical>(std::move(expr), oper, std::move(right));
+    }
+
+    return expr;
+}
+auto Parser::logic_or() -> std::unique_ptr<Expr> {
+    std::unique_ptr<Expr> expr = logic_and();
+
+    while (match({TokenType::OR})) {
+        Token oper = previous();
+
+        std::unique_ptr<Expr> right = logic_and();
+
+        expr = std::make_unique<Logical>(std::move(expr), oper, std::move(right));
+    }
+
+    return expr;
+}
+auto Parser::ifStatement() -> std::shared_ptr<Stmt> {
+    consume(TokenType::LEFT_PAREN, "expect '(' after a 'if'.");
+
+    auto condition = expression();
+    consume(TokenType::RIGHT_PAREN, "expect ')' after 'if' condition");
+
+    auto thenBranch = statement();
+    std::shared_ptr<Stmt> elseBranch = nullptr;
+
+
+    if (match({TokenType::ELSE})) {
+        elseBranch = statement();
+    }
+
+    return std::make_shared<IF>(std::move(condition), thenBranch, elseBranch);
+}
 
 auto Parser::block() -> std::vector<std::shared_ptr<Stmt>> {
     std::vector<std::shared_ptr<Stmt>> statements;
@@ -21,7 +62,7 @@ auto Parser::block() -> std::vector<std::shared_ptr<Stmt>> {
 }
 
 auto Parser::assignment() -> std::unique_ptr<Expr> {
-    std::unique_ptr<Expr> expr = equality();
+    std::unique_ptr<Expr> expr = logic_or();
 
     if (match({TokenType::EQUAL})) {
         Token equals = previous();
@@ -73,8 +114,10 @@ auto Parser::printStatement() -> std::shared_ptr<Stmt> {
 }
 
 auto Parser::statement() -> std::shared_ptr<Stmt> {
+    if (match({TokenType::IF})) return ifStatement();
     if (match({TokenType::PRINT})) return printStatement();
     if (match({TokenType::LEFT_BRACE})) return std::make_shared<Block>(block());
+
     return expressionStatement();
 }
 

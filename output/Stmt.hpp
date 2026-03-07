@@ -8,16 +8,20 @@
 #include "Expr.hpp"
 struct Block;
 struct Expression;
+struct Function;
 struct IF;
 struct Print;
+struct Return;
 struct Var;
 struct While;
 struct StmtVisitor
 {
      virtual Value visitBlockStmt( Block &expr) = 0;
       virtual Value visitExpressionStmt( Expression &expr) = 0;
+      virtual Value visitFunctionStmt( Function &expr) = 0;
       virtual Value visitIFStmt( IF &expr) = 0;
       virtual Value visitPrintStmt( Print &expr) = 0;
+      virtual Value visitReturnStmt( Return &expr) = 0;
       virtual Value visitVarStmt( Var &expr) = 0;
       virtual Value visitWhileStmt( While &expr) = 0;
  
@@ -46,6 +50,18 @@ struct Expression : public Stmt
     }
 
 };
+struct Function : public Stmt
+{
+    Function ( Token name, std::vector<Token> params, std::vector<std::shared_ptr<Stmt>> body ) 
+	: 	name (name),
+	params (params),
+	body (body){}
+	 Token name;	 std::vector<Token> params;	 std::vector<std::shared_ptr<Stmt>> body;
+   Value accept(StmtVisitor &visitor) override {
+    return visitor.visitFunctionStmt(*this);
+    }
+
+};
 struct IF : public Stmt
 {
     IF ( std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch ) 
@@ -65,6 +81,17 @@ struct Print : public Stmt
 	 std::shared_ptr<Expr> expression;
    Value accept(StmtVisitor &visitor) override {
     return visitor.visitPrintStmt(*this);
+    }
+
+};
+struct Return : public Stmt
+{
+    Return ( Token keyword, std::shared_ptr<Expr> value ) 
+	: 	keyword (keyword),
+	value (value){}
+	 Token keyword;	 std::shared_ptr<Expr> value;
+   Value accept(StmtVisitor &visitor) override {
+    return visitor.visitReturnStmt(*this);
     }
 
 };

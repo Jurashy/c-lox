@@ -7,6 +7,74 @@
 #include <vector>
 #include <memory>
 
+// function objects 156
+
+auto Parser::returnStatement() -> std::shared_ptr<Stmt> {
+    auto keyword = previous();
+    std::shared_ptr<Expr> value = nullptr;
+
+    if (!check(TokenType::SEMICOLON)) value =  expression();
+
+    consume(TokenType::SEMICOLON, "expect ';' after return.");
+    return std::make_shared<Return>(keyword, value);
+}
+
+auto Parser::__function__(const std::string& kind) -> std::shared_ptr<Stmt> {
+    const Token& name = consume(TokenType::IDENTIFIER, "expect " + kind + " name.");
+
+    consume(TokenType::LEFT_PAREN, "expect '(' after " + kind + " name.");
+    std::vector<Token> parameters {};
+
+    if (!check(TokenType::RIGHT_PAREN)) {
+        do {
+            if (parameters.size() >= 255) {
+                perror(peek(), "can not have more than 255 parameters");
+            }
+
+            parameters.push_back(consume(TokenType::IDENTIFIER, "expect parameter name"));
+        } while (match({TokenType::COMMA}));
+    }
+
+    consume(TokenType::RIGHT_PAREN, "expect ')' after parameters");
+
+    consume(TokenType::LEFT_BRACE, "expect '{' before " + kind + " body");
+    std::vector<std::shared_ptr<Stmt>> body = block();
+
+    return std::make_shared<Function>(name, parameters, body);
+}
+
+auto Parser::finishCall(std::unique_ptr<Expr>& callee)
+    -> std::unique_ptr<Expr> {
+    std::vector<std::shared_ptr<Expr>> arguments;
+
+    if (!check(TokenType::RIGHT_PAREN)) {
+        do {
+            if (std::ssize(arguments) >= 255) {
+                perror(peek(), "can't have more then 255 arguments");
+            }
+            arguments.push_back(std::move(expression()));
+        } while (match({TokenType::COMMA}));
+    }
+
+    Token paren = consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
+
+    return std::make_unique<Call>(std::move(callee), paren, arguments);
+}
+
+auto Parser::call() -> std::unique_ptr<Expr> {
+    std::unique_ptr<Expr> expr = primary();
+
+    while (true) {
+        if (match({TokenType::LEFT_PAREN})) {
+            expr = finishCall(expr);
+        } else {
+            break;
+        }
+    }
+
+    return expr;
+}
+
 auto Parser::forStatement() -> std::shared_ptr<Stmt> {
     consume(TokenType::LEFT_PAREN, "Expect '(' after a 'for'.");
 
@@ -48,7 +116,7 @@ auto Parser::whileStatement() -> std::shared_ptr<Stmt> {
 
     std::shared_ptr<Stmt> body = statement();
 
-    return make_shared<While>(std::move(condition), body);
+    return std::make_shared<While>(std::move(condition), body);
 }
 
 auto Parser::logic_and() -> std::unique_ptr<Expr> {
@@ -137,7 +205,9 @@ auto Parser::varDeclaration() -> std::shared_ptr<Stmt> {
 }
 
 auto Parser::declaration() -> std::shared_ptr<Stmt> {
+    const std::string& lF = "function";
     try {
+        if (match({TokenType::FUN})) return __function__(lF);
         if (match({TokenType::VAR})) return varDeclaration();
         return statement();
     } catch (ParseError& e) {
@@ -163,6 +233,7 @@ auto Parser::statement() -> std::shared_ptr<Stmt> {
     if (match({TokenType::FOR})) return forStatement();
     if (match({TokenType::IF})) return ifStatement();
     if (match({TokenType::PRINT})) return printStatement();
+    if (match({TokenType::RETURN})) return returnStatement();
     if (match({TokenType::WHILE})) return whileStatement();
     if (match({TokenType::LEFT_BRACE})) return std::make_shared<Block>(block());
 
@@ -247,7 +318,7 @@ auto Parser::unary() -> std::unique_ptr<Expr>
         return std::make_unique<Unary>(oper, std::move(right));
     }
 
-    return primary();
+    return call();
 }
 
 auto Parser::factor() -> std::unique_ptr<Expr>
@@ -288,7 +359,6 @@ auto Parser::comparison() -> std::unique_ptr<Expr>
         auto right = term();
         expr = std::make_unique<Binary>(std::move(expr), oper, std::move(right));
     }
-    std::cout << "entered comparison\n";
 
     return expr;
 }

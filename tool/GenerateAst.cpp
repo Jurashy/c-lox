@@ -10,6 +10,7 @@ std::vector<Str> as_list
     {
         "Assign     : Token name, std::shared_ptr<Expr> value",
         "Binary     : std::shared_ptr<Expr> left, Token my_operator, std::shared_ptr<Expr> right",
+        "Call       : std::shared_ptr<Expr> callee, Token paren, std::vector<std::shared_ptr<Expr>> arguments",
         "Grouping   : std::shared_ptr<Expr> expression",
         "LLiteral   : Value value",
         "Logical    : std::shared_ptr<Expr> left, Token oper, std::shared_ptr<Expr> right",
@@ -20,8 +21,10 @@ std::vector<Str> Statements
 {
     "Block         : std::vector<std::shared_ptr<Stmt>> statements",
     "Expression    : std::shared_ptr<Expr> expression",
+    "Function      : Token name, std::vector<Token> params, std::vector<std::shared_ptr<Stmt>> body",
     "IF            : std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch",
     "Print         : std::shared_ptr<Expr> expression",
+    "Return        : Token keyword, std::shared_ptr<Expr> value",
     "Var           : Token name, std::shared_ptr<Expr> initializer",
     "While         : std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body"
 };

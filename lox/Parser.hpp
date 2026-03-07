@@ -8,6 +8,7 @@
 #include <vector>
 #include <type_traits>
 #include <concepts>
+#include <array>
 
 struct Parser
 {
@@ -15,6 +16,10 @@ struct Parser
     auto parse() -> std::vector<std::shared_ptr<Stmt>>;
 
 private:
+    auto returnStatement() -> std::shared_ptr<Stmt>;
+    auto __function__(const std::string& kind) -> std::shared_ptr<Stmt>;
+    auto finishCall(std::unique_ptr<Expr>& callee) -> std::unique_ptr<Expr>;
+    auto call() -> std::unique_ptr<Expr>;
     auto forStatement() -> std::shared_ptr<Stmt>;
     auto whileStatement() -> std::shared_ptr<Stmt>;
     auto logic_and() -> std::unique_ptr<Expr>;

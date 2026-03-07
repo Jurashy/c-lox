@@ -45,10 +45,12 @@ auto AstPrinter::visitLLiteralExpr(LLiteral& expr) -> Value
             return std::string("nil");
         else if constexpr (std::is_same_v<T, std::string>)
             return val;
-        else
-        {
-            return std::to_string(val);
-        }
+        else if constexpr (std::is_same_v<T, bool>)
+            return val ? "true" : "false";
+        else if constexpr (std::is_same_v<T, std::shared_ptr<LoxCallable>>)
+            return "<fn>";
+        else return "unknown";
+
     }, expr.value);
 }
 

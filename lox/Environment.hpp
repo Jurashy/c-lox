@@ -24,7 +24,7 @@ public:
     Environment(std::shared_ptr<Environment<T>> enclosing) : enclosing(enclosing) {}
 
     void
-    assign(Token name, T value) {
+    assign(Token name, Value value) {
         if (values.find(name.getLexeme()) != values.end()) {
             values[name.getLexeme()] = value;
             return;
@@ -37,7 +37,7 @@ public:
         throw RuntimeError(name, "Undefined variable '" + name.getLexeme() + "'");
     }
     void
-    define(std::string name, T value) {
+    define(std::string name, Value value) {
         values[name] = value;
     }
 

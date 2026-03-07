@@ -7,6 +7,7 @@
 #include "../lox/Value.hpp"
 struct Assign;
 struct Binary;
+struct Call;
 struct Grouping;
 struct LLiteral;
 struct Logical;
@@ -16,6 +17,7 @@ struct ExprVisitor
 {
      virtual Value visitAssignExpr( Assign &expr) = 0;
       virtual Value visitBinaryExpr( Binary &expr) = 0;
+      virtual Value visitCallExpr( Call &expr) = 0;
       virtual Value visitGroupingExpr( Grouping &expr) = 0;
       virtual Value visitLLiteralExpr( LLiteral &expr) = 0;
       virtual Value visitLogicalExpr( Logical &expr) = 0;
@@ -47,6 +49,18 @@ struct Binary : public Expr
 	 std::shared_ptr<Expr> left;	 Token my_operator;	 std::shared_ptr<Expr> right;
    Value accept(ExprVisitor &visitor) override {
     return visitor.visitBinaryExpr(*this);
+    }
+
+};
+struct Call : public Expr
+{
+    Call ( std::shared_ptr<Expr> callee, Token paren, std::vector<std::shared_ptr<Expr>> arguments ) 
+	: 	callee (callee),
+	paren (paren),
+	arguments (arguments){}
+	 std::shared_ptr<Expr> callee;	 Token paren;	 std::vector<std::shared_ptr<Expr>> arguments;
+   Value accept(ExprVisitor &visitor) override {
+    return visitor.visitCallExpr(*this);
     }
 
 };

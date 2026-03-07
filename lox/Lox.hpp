@@ -5,7 +5,7 @@
 
 #include "../output/Stmt.hpp"
 
-static auto runtime_error(RuntimeError& error) -> void;
+auto runtime_error(RuntimeError& error) -> void;
 
 static auto runFile(std::string path) -> void;
 static auto runPrompt() -> void;

@@ -23,7 +23,7 @@ auto Scanner::match(char expected) -> bool {
 auto Scanner::peek() -> char
 {
     if (isAtEnd()) return '\0';
-    return m_source.at(current);
+    return m_source[current];
 }
 
 
@@ -108,15 +108,14 @@ auto Scanner::scanToken() -> void
     //     break;
     default:
         if (isDigit(c)) number();
-        else if (std::isalpha(c)) identifier();
+        else if (std::isalpha(c) || c == '_') identifier();
         else error(line, "unexpected character");
     }
 }
 
 auto Scanner::advance() -> char
 {
-    current++;
-    return m_source.at(current - 1);
+    return m_source[current++];
 }
 
 auto Scanner::addToken(TokenType type) -> void
@@ -143,6 +142,7 @@ auto Scanner::String__() -> void
     if (isAtEnd())
     {
         error(line, "unterminated string");
+        return;
     }
 
     advance();
@@ -175,7 +175,7 @@ auto Scanner::number() -> void
 auto Scanner::peekNext() -> char
 {
     if (current + 1 >= m_source.length()) return '\0';
-    return m_source.at(current + 1);
+    return m_source[current + 1];
 }
 
 auto Scanner::identifier() -> void

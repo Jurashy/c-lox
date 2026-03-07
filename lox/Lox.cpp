@@ -19,8 +19,8 @@
 #include "Environment.hpp"
 #include "Value.hpp"
 
-static const auto interpreter = std::make_shared<Interpreter<Value>>();
-static_assert(!std::is_abstract_v<Interpreter<std::any>>,
+static const auto interpreter = std::make_shared<Interpreter>();
+static_assert(!std::is_abstract_v<Interpreter>,
               "Interpreter is still abstract!");
 namespace some_vars
 {
@@ -29,7 +29,7 @@ namespace some_vars
 } // namespace some_vars
 
 
-static auto runtime_error(RuntimeError& error) -> void
+auto runtime_error(RuntimeError& error) -> void
 {
     std::cerr << error.what() << "\n[line " << error.getToken().getLine() << "]\n";
     some_vars::hadRuntimeError = true;

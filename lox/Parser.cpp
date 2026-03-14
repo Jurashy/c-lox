@@ -248,7 +248,7 @@ auto Parser::parse() -> std::vector<std::shared_ptr<Stmt>>
     }
     return statements;
 }
-
+[[maybe_unused]]
 auto Parser::synchronize() -> void
 {
     advance();
@@ -257,7 +257,7 @@ auto Parser::synchronize() -> void
     {
         if (previous().getType() == TokenType::SEMICOLON) return;
 
-        switch (peek().getType())
+         switch (peek().getType())
         {
             case TokenType::CLASS:
             case TokenType::FUN:

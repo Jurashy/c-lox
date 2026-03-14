@@ -5,16 +5,22 @@
 #include "LoxFunction.hpp"
 #include "Return__.hpp"
 
-auto LoxFunction::call(Interpreter& interpreter, std::vector<Value> arguments) -> Value  {
-    auto env = std::make_shared<Environment<Value>>(interpreter.globals);
+
+
+auto LoxFunction::call(Interpreter& interpreter, std::vector<Value> arguments) -> Value {
+    auto functionEnv = std::make_shared<Environment<Value>>(m_closure);
+
     for (size_t i = 0; i < m_declaration->params.size(); i++) {
-        env->define(m_declaration->params[i].getLexeme(), arguments[i]);
+        functionEnv->define(m_declaration->params[i].getLexeme(), arguments[i]);
     }
+
+    // IMPORTANT: use interpreter.executeBlock, passing the functionEnv
     try {
-        interpreter.executeBlock(m_declaration->body, env);
+        interpreter.executeBlock(m_declaration->body, functionEnv);
     } catch (Return__ & returnValue) {
         return returnValue.m_value;
     }
+
     return {};
 }
 

@@ -9,6 +9,7 @@
 #include <string_view>
 #include <chrono>
 
+#include "Resolver.hpp"
 #include "Environment.hpp"
 #include "Lox.hpp"
 #include "../output/Stmt.hpp"
@@ -23,9 +24,11 @@
 ///Checking arity // page 152
 ///
 
+
+// Local Functions and Closures
 struct LoxFunction;
 
-struct Interpreter :  ExprVisitor, StmtVisitor
+struct Interpreter :  public ExprVisitor, public StmtVisitor
 {
     std::shared_ptr<Environment<Value>> globals = std::make_shared<Environment<Value>>(nullptr);
     Interpreter() {
@@ -34,16 +37,35 @@ struct Interpreter :  ExprVisitor, StmtVisitor
         globals->define("clock", val);
     }
 
+
+    auto resolve(Expr* expr, int depth) {
+        locals.insert({expr, depth});
+    }
     auto visitReturnStmt(Return& stmt) -> Value override {
         Value value = std::monostate{};
 
         if (stmt.value != nullptr) value = evaluate(stmt.value);
         throw Return__(value);
     }
+    auto lookUpVariable(const Token name, Expr* expr) {
+        // First, try locals map (for resolved locals)
+        auto it = locals.find(expr);
+        if (it != locals.end()) {
+            int distance = it->second;
+            return environment->getAt(distance, name.getLexeme());
+        }
 
+        // Then, try current environment (function scope)
+        try {
+            return environment->get(name); // <-- this will find parameters
+        } catch (RuntimeError&) {
+            // Finally, fallback to globals
+            return globals->get(name);
+        }
+    }
     auto visitFunctionStmt(Function& stmt) -> Value override {
         auto funcDecl = std::make_shared<Function>(stmt); // capture closure
-        auto func = std::make_shared<LoxFunction>(funcDecl);
+        auto func = std::make_shared<LoxFunction>(funcDecl, environment);
 
         std::shared_ptr<LoxCallable> callableFunc = std::static_pointer_cast<LoxCallable>(func);
         environment->define(stmt.name.getLexeme(), callableFunc);              // stored as Value automatically
@@ -108,7 +130,8 @@ struct Interpreter :  ExprVisitor, StmtVisitor
 
         return {};
     }
-    auto executeBlock(std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment<Value>> newEnv) -> void {
+    auto executeBlock(std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment<Value>> newEnv)
+        -> void {
         auto previous = environment;
 
         try {
@@ -132,12 +155,20 @@ struct Interpreter :  ExprVisitor, StmtVisitor
     }
     auto visitAssignExpr(Assign& expr) -> Value override {
         Value value = evaluate(expr.value);
-        environment->assign(expr.name, value);
 
-        return  value;
+
+
+        auto it = locals.find(&expr);
+        if (it != locals.end()) {
+            int distance = it->second;
+            environment->assignAt(distance, expr.name, value);
+        }
+        else globals->assign(expr.name, value);
+
+        return value;
     }
     Value visitVariableExpr(Variable& expr) override {
-        return environment->get(expr.name);
+        return lookUpVariable(expr.name, &expr);
     }
 
     auto visitVarStmt(Var& stmt) -> Value override {
@@ -232,9 +263,10 @@ struct Interpreter :  ExprVisitor, StmtVisitor
 
         return std::monostate{};
     }
-    ~Interpreter() = default;
+    virtual ~Interpreter() = default; // make it virtual
 
 private:
+    std::map<Expr*, int> locals;
     std::shared_ptr<Environment<Value>> environment = globals;
     void execute(Stmt& stmt) {
         stmt.accept(*this);

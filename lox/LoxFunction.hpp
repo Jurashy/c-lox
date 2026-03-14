@@ -15,12 +15,12 @@
 struct LoxFunction : public LoxCallable{
 private:
     std::shared_ptr<Function> m_declaration;
-    std::shared_ptr<Environment<Value>> closure;
+    std::shared_ptr<Environment<Value>> m_closure;
 
 public:
-    LoxFunction(std::shared_ptr<Function> declaration, std::shared_ptr<Environment<Value>> env = nullptr) :
+    LoxFunction(std::shared_ptr<Function> declaration, std::shared_ptr<Environment<Value>> closure = nullptr) :
     m_declaration { declaration }
-    , closure { env }
+    , m_closure { closure }
     {}
 
     auto call(Interpreter& interpreter, std::vector<Value> arguments) -> Value override;

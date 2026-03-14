@@ -18,6 +18,7 @@
 #include "../output/Stmt.hpp"
 #include "Environment.hpp"
 #include "Value.hpp"
+#include "Resolver.hpp"
 
 static const auto interpreter = std::make_shared<Interpreter>();
 static_assert(!std::is_abstract_v<Interpreter>,
@@ -109,6 +110,9 @@ static auto run(std::string source) -> void
     std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
 
     if (some_vars::hadError) return;
+    auto resolver = std::make_shared<Resolver>(interpreter);
+    resolver->resolve(statements);
+
     interpreter->interpret(statements);
 
     if (some_vars::hadRuntimeError) std::exit(EXIT_FAILURE);

@@ -9,6 +9,8 @@
 #include <memory>
 
 struct LoxCallable;
+struct LoxClass;
+
 using CallablePtr = std::shared_ptr<LoxCallable>;
 
 using Value = std::variant<
@@ -17,6 +19,7 @@ using Value = std::variant<
     bool,
     std::string,
     CallablePtr,
-    std::nullptr_t
+    std::nullptr_t,
+    std::shared_ptr<LoxClass>
 >;
 #endif //LOX_VALUE_HPP

@@ -7,6 +7,13 @@
 
 #include <complex>
 
+auto Resolver::visitClassStmt(Class& stmt) -> Value {
+    declare(stmt.name);
+    define(stmt.name);
+
+    return std::monostate{};
+}
+
 auto Resolver::visitUnaryExpr(Unary& expr) -> Value {
     resolve(expr.right);
     return std::monostate{};
@@ -64,7 +71,7 @@ auto Resolver::visitPrintStmt(Print& stmt) -> Value {
     return std::monostate{};
 }
 
-auto Resolver::define(const Token name) {
+auto Resolver::define(const Token name)-> void {
     if (scopes.empty()) return;
     scopes.back()[name.getLexeme()] = true;
 }
@@ -85,6 +92,8 @@ auto Resolver::visitExpressionStmt(Expression& stmt) -> Value {
 
     return std::monostate{};
 }
+
+
 
 auto Resolver::resolveFunction(Function& function, FunctionType type) {
     FunctionType enclosingFunction = currentFunction;

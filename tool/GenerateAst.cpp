@@ -21,6 +21,7 @@ std::vector<Str> Statements
 {
     "Block         : std::vector<std::shared_ptr<Stmt>> statements",
     "Expression    : std::shared_ptr<Expr> expression",
+    "Class         : Token name, std::vector<std::shared_ptr<Function>> methods",
     "Function      : Token name, std::vector<Token> params, std::vector<std::shared_ptr<Stmt>> body",
     "IF            : std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch",
     "Print         : std::shared_ptr<Expr> expression",

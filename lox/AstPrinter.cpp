@@ -49,6 +49,7 @@ auto AstPrinter::visitLLiteralExpr(LLiteral& expr) -> Value
             return val ? "true" : "false";
         else if constexpr (std::is_same_v<T, std::shared_ptr<LoxCallable>>)
             return "<fn>";
+        //else if constexpr (std::is_same_v<T, std::shared_ptr<LoxClass>>) return val.toString();
         else return "unknown";
 
     }, expr.value);

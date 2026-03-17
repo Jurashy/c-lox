@@ -51,7 +51,7 @@ private:
 
     auto declare(Token name) -> void;
 
-    auto define(const Token name);
+    auto define(const Token name) -> void;
 
     auto visitVariableExpr( Variable& expr) -> Value override;
 
@@ -84,6 +84,8 @@ private:
     auto visitLogicalExpr(Logical& expr) -> Value override;
 
     auto visitUnaryExpr(Unary& expr) -> Value override;
+
+    auto visitClassStmt(Class& stmt) -> Value override;
 };
 
 #endif //LOX_RESOLVER_HPP

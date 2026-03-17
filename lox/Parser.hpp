@@ -16,6 +16,7 @@ struct Parser
     auto parse() -> std::vector<std::shared_ptr<Stmt>>;
 
 private:
+    auto classDeclaration() -> std::shared_ptr<Stmt>;
     auto returnStatement() -> std::shared_ptr<Stmt>;
     auto __function__(const std::string& kind) -> std::shared_ptr<Stmt>;
     auto finishCall(std::unique_ptr<Expr>& callee) -> std::unique_ptr<Expr>;

@@ -9,6 +9,27 @@
 
 // function objects 156
 
+auto Parser::classDeclaration() -> std::shared_ptr<Stmt> {
+    const std::string method = "method";
+    Token name = consume(TokenType::IDENTIFIER, "Expect class name.");
+    consume(TokenType::LEFT_BRACE, "expect '{' before the class body");
+
+
+    std::vector<std::shared_ptr<Function>> methods;
+
+
+    while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+        auto stmt = __function__(method);
+        auto func = std::dynamic_pointer_cast<Function>(stmt);
+        if (!func) throw std::runtime_error("expected function node");
+        methods.emplace_back(func);
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after class body.");
+
+    return std::make_shared<Class>(name, methods);
+}
+
 auto Parser::returnStatement() -> std::shared_ptr<Stmt> {
     auto keyword = previous();
     std::shared_ptr<Expr> value = nullptr;
@@ -207,6 +228,7 @@ auto Parser::varDeclaration() -> std::shared_ptr<Stmt> {
 auto Parser::declaration() -> std::shared_ptr<Stmt> {
     const std::string& lF = "function";
     try {
+        if (match({TokenType::CLASS})) return classDeclaration();
         if (match({TokenType::FUN})) return __function__(lF);
         if (match({TokenType::VAR})) return varDeclaration();
         return statement();

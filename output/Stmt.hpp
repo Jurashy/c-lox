@@ -8,6 +8,7 @@
 #include "Expr.hpp"
 struct Block;
 struct Expression;
+struct Class;
 struct Function;
 struct IF;
 struct Print;
@@ -18,6 +19,7 @@ struct StmtVisitor
 {
      virtual Value visitBlockStmt( Block &expr) = 0;
       virtual Value visitExpressionStmt( Expression &expr) = 0;
+      virtual Value visitClassStmt( Class &expr) = 0;
       virtual Value visitFunctionStmt( Function &expr) = 0;
       virtual Value visitIFStmt( IF &expr) = 0;
       virtual Value visitPrintStmt( Print &expr) = 0;
@@ -47,6 +49,17 @@ struct Expression : public Stmt
 	 std::shared_ptr<Expr> expression;
    Value accept(StmtVisitor &visitor) override {
     return visitor.visitExpressionStmt(*this);
+    }
+
+};
+struct Class : public Stmt
+{
+    Class ( Token name, std::vector<std::shared_ptr<Function>> methods ) 
+	: 	name (name),
+	methods (methods){}
+	 Token name;	 std::vector<std::shared_ptr<Function>> methods;
+   Value accept(StmtVisitor &visitor) override {
+    return visitor.visitClassStmt(*this);
     }
 
 };

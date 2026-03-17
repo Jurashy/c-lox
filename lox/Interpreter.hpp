@@ -18,6 +18,7 @@
 #include "LoxFunction.hpp"
 #include "NativeClock.hpp"
 #include "Return__.hpp"
+#include "LoxClass.hpp"
 
 /// interpreting function calls 10.1.2
 ///
@@ -27,6 +28,7 @@
 
 // Local Functions and Closures
 struct LoxFunction;
+struct LoxClass;
 
 struct Interpreter :  public ExprVisitor, public StmtVisitor
 {
@@ -37,7 +39,12 @@ struct Interpreter :  public ExprVisitor, public StmtVisitor
         globals->define("clock", val);
     }
 
-
+    auto visitClassStmt(Class& stmt) -> Value override {
+        environment->define(stmt.name.getLexeme(), nullptr);
+        std::shared_ptr<LoxClass> klass = std::make_shared<LoxClass>(stmt.name.getLexeme());
+        environment->assign(stmt.name, klass);
+        return std::monostate{};
+    }
     auto resolve(Expr* expr, int depth) {
         locals.insert({expr, depth});
     }
@@ -281,6 +288,7 @@ private:
             else if constexpr (std::is_same_v<TA, CallablePtr>) return "<fn>";
             else if constexpr (std::is_same_v<TA, std::shared_ptr<Function>>) return "<function>";
             else if constexpr (std::is_same_v<TA, std::nullptr_t>) return "null";
+            else if constexpr (std::is_same_v<TA, std::shared_ptr<LoxClass>>) return v->toString();
         }, value);
     }
 

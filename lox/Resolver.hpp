@@ -37,10 +37,18 @@ private:
 
     enum class FunctionType {
         NONE,
-        FUNCTION
+        FUNCTION,
+        METHOD
     };
 
     FunctionType currentFunction = FunctionType::NONE;
+
+    enum class classType {
+        NONE,
+        CLASS
+    };
+
+    classType currentClas = classType::NONE;
 
     auto resolve(sharedStmt stmt) -> void;
     auto resolve(sharedExpr expr) -> void;
@@ -61,7 +69,7 @@ private:
 
     auto visitFunctionStmt(Function& stmt) -> Value override;
 
-    auto resolveFunction(Function& function, FunctionType type);
+    auto resolveFunction(Function& function, FunctionType type) -> void;
 
     auto visitExpressionStmt(Expression& stmt) -> Value override;
 
@@ -86,6 +94,12 @@ private:
     auto visitUnaryExpr(Unary& expr) -> Value override;
 
     auto visitClassStmt(Class& stmt) -> Value override;
+
+    auto visitGetExpr(Get& expr) -> Value override;
+
+    auto visitSetExpr(Set& expr) -> Value override;
+
+    auto visitThisExpr( This &expr) -> Value override;
 };
 
 #endif //LOX_RESOLVER_HPP

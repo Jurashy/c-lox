@@ -88,6 +88,9 @@ auto Parser::call() -> std::unique_ptr<Expr> {
     while (true) {
         if (match({TokenType::LEFT_PAREN})) {
             expr = finishCall(expr);
+        } else if (match({TokenType::DOT})) {
+            Token name = consume(TokenType::IDENTIFIER, "expect property name after '.'.");
+            expr = std::make_unique<Get>(std::move(expr), name);
         } else {
             break;
         }
@@ -207,6 +210,9 @@ auto Parser::assignment() -> std::unique_ptr<Expr> {
             Token name = var->name;
             return std::make_unique<Assign>(name, std::move(value));
         }
+        if (auto get = dynamic_cast<Get*>(expr.get())) {
+            return std::make_unique<Set>(std::move(get->object), get->name, std::move(value));
+        }
 
         perror(equals, "invalid assignment target.");
     }
@@ -317,6 +323,8 @@ auto Parser::primary() -> std::unique_ptr<Expr>
 
     if (match({TokenType::NUMBER, TokenType::STRING}))
         return std::make_unique<LLiteral>(previous().getLiteral());
+
+    if (match({TokenType::THIS})) return std::make_unique<This>(previous());
 
     if (match({TokenType::IDENTIFIER})) return std::make_unique<Variable>(previous());
     if (match({TokenType::LEFT_PAREN}))

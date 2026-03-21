@@ -8,9 +8,12 @@
 struct Assign;
 struct Binary;
 struct Call;
+struct Get;
 struct Grouping;
 struct LLiteral;
 struct Logical;
+struct Set;
+struct This;
 struct Unary;
 struct Variable;
 struct ExprVisitor
@@ -18,9 +21,12 @@ struct ExprVisitor
      virtual Value visitAssignExpr( Assign &expr) = 0;
       virtual Value visitBinaryExpr( Binary &expr) = 0;
       virtual Value visitCallExpr( Call &expr) = 0;
+      virtual Value visitGetExpr( Get &expr) = 0;
       virtual Value visitGroupingExpr( Grouping &expr) = 0;
       virtual Value visitLLiteralExpr( LLiteral &expr) = 0;
       virtual Value visitLogicalExpr( Logical &expr) = 0;
+      virtual Value visitSetExpr( Set &expr) = 0;
+      virtual Value visitThisExpr( This &expr) = 0;
       virtual Value visitUnaryExpr( Unary &expr) = 0;
       virtual Value visitVariableExpr( Variable &expr) = 0;
  
@@ -64,6 +70,17 @@ struct Call : public Expr
     }
 
 };
+struct Get : public Expr
+{
+    Get ( std::shared_ptr<Expr> object, Token name ) 
+	: 	object (object),
+	name (name){}
+	 std::shared_ptr<Expr> object;	 Token name;
+   Value accept(ExprVisitor &visitor) override {
+    return visitor.visitGetExpr(*this);
+    }
+
+};
 struct Grouping : public Expr
 {
     Grouping ( std::shared_ptr<Expr> expression ) 
@@ -93,6 +110,28 @@ struct Logical : public Expr
 	 std::shared_ptr<Expr> left;	 Token oper;	 std::shared_ptr<Expr> right;
    Value accept(ExprVisitor &visitor) override {
     return visitor.visitLogicalExpr(*this);
+    }
+
+};
+struct Set : public Expr
+{
+    Set ( std::shared_ptr<Expr> object, Token name, std::shared_ptr<Expr> value ) 
+	: 	object (object),
+	name (name),
+	value (value){}
+	 std::shared_ptr<Expr> object;	 Token name;	 std::shared_ptr<Expr> value;
+   Value accept(ExprVisitor &visitor) override {
+    return visitor.visitSetExpr(*this);
+    }
+
+};
+struct This : public Expr
+{
+    This ( Token keyword ) 
+	: 	keyword (keyword){}
+	 Token keyword;
+   Value accept(ExprVisitor &visitor) override {
+    return visitor.visitThisExpr(*this);
     }
 
 };

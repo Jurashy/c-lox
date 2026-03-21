@@ -11,9 +11,12 @@ std::vector<Str> as_list
         "Assign     : Token name, std::shared_ptr<Expr> value",
         "Binary     : std::shared_ptr<Expr> left, Token my_operator, std::shared_ptr<Expr> right",
         "Call       : std::shared_ptr<Expr> callee, Token paren, std::vector<std::shared_ptr<Expr>> arguments",
+        "Get        : std::shared_ptr<Expr> object, Token name",
         "Grouping   : std::shared_ptr<Expr> expression",
         "LLiteral   : Value value",
         "Logical    : std::shared_ptr<Expr> left, Token oper, std::shared_ptr<Expr> right",
+        "Set        : std::shared_ptr<Expr> object, Token name, std::shared_ptr<Expr> value",
+        "This       : Token keyword",
         "Unary        : Token my_operator, std::shared_ptr<Expr> right",
         "Variable   : Token name"
     };

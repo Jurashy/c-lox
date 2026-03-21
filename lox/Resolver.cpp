@@ -7,9 +7,45 @@
 
 #include <complex>
 
+auto Resolver::visitThisExpr( This &expr) -> Value {
+    if (currentClas == classType::NONE) {
+        error(expr.keyword, "can't use this outside of the class"); return std::monostate{};
+    }
+
+    resolveLocal(expr, expr.keyword);
+
+    return std::monostate{};
+}
+
+auto Resolver::visitSetExpr(Set& expr) -> Value {
+    resolve(expr.value);
+    resolve(expr.object);
+
+    return std::monostate{};
+}
+
+auto Resolver::visitGetExpr(Get& expr) -> Value {
+    resolve(expr.object);
+    return std::monostate{};
+}
+
 auto Resolver::visitClassStmt(Class& stmt) -> Value {
+    classType enclosingClass = currentClas;
+    currentClas = classType::CLASS;
     declare(stmt.name);
     define(stmt.name);
+
+    beginScope();
+    scopes.front()["this"] = true;
+
+    for (std::shared_ptr<Function>& method : stmt.methods) {
+        FunctionType declaration = FunctionType::METHOD;
+        resolveFunction(*method, declaration);;
+    }
+
+    endScope();
+
+    currentClas = enclosingClass;
 
     return std::monostate{};
 }
@@ -95,7 +131,7 @@ auto Resolver::visitExpressionStmt(Expression& stmt) -> Value {
 
 
 
-auto Resolver::resolveFunction(Function& function, FunctionType type) {
+auto Resolver::resolveFunction(Function& function, FunctionType type) -> void {
     FunctionType enclosingFunction = currentFunction;
     currentFunction = type;
 

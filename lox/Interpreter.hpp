@@ -19,6 +19,7 @@
 #include "NativeClock.hpp"
 #include "Return__.hpp"
 #include "LoxClass.hpp"
+#include "LoxInstance.hpp"
 
 /// interpreting function calls 10.1.2
 ///
@@ -29,6 +30,7 @@
 // Local Functions and Closures
 struct LoxFunction;
 struct LoxClass;
+//struct LoxInstance;
 
 struct Interpreter :  public ExprVisitor, public StmtVisitor
 {
@@ -39,9 +41,41 @@ struct Interpreter :  public ExprVisitor, public StmtVisitor
         globals->define("clock", val);
     }
 
+    auto visitThisExpr( This &expr) -> Value override {
+        return lookUpVariable(expr.keyword, &expr);
+    }
+    auto visitSetExpr(Set& expr) -> Value override {
+        auto object = evaluate(expr.object);
+
+        if (!std::holds_alternative<std::shared_ptr<LoxInstance>>(object))
+            throw RuntimeError(expr.name, "Only instances have fields");
+
+        auto value = evaluate(expr.value);
+        auto instance = std::get<std::shared_ptr<LoxInstance>>(object);
+        instance->set(expr.name, value);
+        return value;
+    }
+    auto visitGetExpr(Get& expr) -> Value override {
+        auto object = evaluate(expr.object);
+
+        if (auto instance = std::get_if<std::shared_ptr<LoxInstance>>(&object)) {
+            return (*instance)->get__(expr.name.getLexeme());
+        }
+
+        throw RuntimeError(expr.name ,"only instances have properties");
+    }
     auto visitClassStmt(Class& stmt) -> Value override {
         environment->define(stmt.name.getLexeme(), nullptr);
-        std::shared_ptr<LoxClass> klass = std::make_shared<LoxClass>(stmt.name.getLexeme());
+
+        std::map<std::string, std::shared_ptr<LoxFunction>> methods;
+
+        for (std::shared_ptr<Function>& method : stmt.methods) {
+            auto function = std::make_shared<LoxFunction>(method, environment);
+
+            methods[method->name.getLexeme()] = function;
+        }
+
+        std::shared_ptr<LoxClass> klass = std::make_shared<LoxClass>(stmt.name.getLexeme(), methods);
         environment->assign(stmt.name, klass);
         return std::monostate{};
     }
@@ -54,7 +88,7 @@ struct Interpreter :  public ExprVisitor, public StmtVisitor
         if (stmt.value != nullptr) value = evaluate(stmt.value);
         throw Return__(value);
     }
-    auto lookUpVariable(const Token name, Expr* expr) {
+    auto lookUpVariable(const Token name, Expr* expr) -> Value {
         // First, try locals map (for resolved locals)
         auto it = locals.find(expr);
         if (it != locals.end()) {
@@ -84,7 +118,7 @@ struct Interpreter :  public ExprVisitor, public StmtVisitor
         return globals;
     }
     auto visitCallExpr(Call& expr) -> Value override {
-        auto callee = evaluate(expr.callee);
+        const auto callee = evaluate(expr.callee);
 
         std::vector<Value> arguments;
 
@@ -93,9 +127,14 @@ struct Interpreter :  public ExprVisitor, public StmtVisitor
         }
 
         // check callable
+        if (std::holds_alternative<std::shared_ptr<LoxClass>>(callee)) {
+            const auto klass = std::get<std::shared_ptr<LoxClass>>(callee);
+            return klass->call(*this, arguments);
+        }
         if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee)) {
             throw RuntimeError(expr.paren, "can call only classes and functions");
         }
+
 
         // extract callable safely
         auto callable_func = std::get<std::shared_ptr<LoxCallable>>(callee);
@@ -286,9 +325,10 @@ private:
             else if constexpr (std::is_same_v<TA, bool>) return v ? "true" : "false";
             else if constexpr (std::is_same_v<TA, std::string>) return v;
             else if constexpr (std::is_same_v<TA, CallablePtr>) return "<fn>";
-            else if constexpr (std::is_same_v<TA, std::shared_ptr<Function>>) return "<function>";
+            else if constexpr (std::is_same_v<TA, std::shared_ptr<LoxFunction>>) return "<function>";
             else if constexpr (std::is_same_v<TA, std::nullptr_t>) return "null";
             else if constexpr (std::is_same_v<TA, std::shared_ptr<LoxClass>>) return v->toString();
+            else if constexpr (std::is_same_v<TA, std::shared_ptr<LoxInstance>>) return v->toString();
         }, value);
     }
 

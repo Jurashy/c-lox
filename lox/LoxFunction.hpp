@@ -10,8 +10,12 @@
 #include "Value.hpp"
 
 #include "LoxCallable.hpp"
-#include "Interpreter.hpp"
 
+struct Function;
+
+template <typename T>
+class Environment;
+struct Interpreter;
 struct LoxFunction : public LoxCallable{
 private:
     std::shared_ptr<Function> m_declaration;
@@ -26,5 +30,7 @@ public:
     auto call(Interpreter& interpreter, std::vector<Value> arguments) -> Value override;
     auto arity() -> int override;
     auto toString() -> std::string override;
+
+    auto bind(std::shared_ptr<LoxInstance> instance) -> std::shared_ptr<LoxFunction>;
 };
 #endif //LOX_LOXFUNCTION_HPP

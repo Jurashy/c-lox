@@ -1,0 +1,17 @@
+what this tiny interpreter can do?
+
+ANS: it has variables and it can be declared with a keyword var.
+
+for ex: var a;
+
+currently has while, and for looops for looping
+Function can be declared with special keyword fun.
+Function has return statements too.
+
+conditions: Currenly can determine if and else
+
+Future goals:
+  Add class and inheritance
+
+  bytecode Virtual machine interpretation
+  

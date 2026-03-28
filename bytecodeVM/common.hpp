@@ -1,0 +1,10 @@
+//
+// Created by hetto on 25.03.2026.
+//
+
+#ifndef LOXINTERPRETER_COMMON_HPP
+#define LOXINTERPRETER_COMMON_HPP
+
+#define DEBUG_TRACE_EXECUTION
+
+#endif //LOXINTERPRETER_COMMON_HPP
